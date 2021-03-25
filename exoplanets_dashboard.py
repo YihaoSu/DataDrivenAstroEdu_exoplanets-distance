@@ -59,6 +59,20 @@ def plot_distance_histogram(data, dist_unit):
     ) 
     return st.plotly_chart(fig, use_container_width=True)
 
+def arrange_extreme_exoplanet_data(extreme_exoplanet):
+    extreme_exoplanet.rename(
+        {
+            'pl_name': '名稱',
+            'disc_year': '發現年份',
+            'discoverymethod': '發現方法',
+            'disc_facility': '觀測計劃/天文台',
+            'pl_orbper': '軌道週期 (天)',
+            'pl_bmasse': '質量 (以地球質量為單位)',
+            'pl_rade': '半徑 (以地球半徑為單位)',
+            'sy_dist': '距離 (秒差距)'
+        }, inplace=True)
+    return extreme_exoplanet
+
 st.set_page_config(
     page_title='太陽系外行星儀表板',
     layout='wide'
@@ -103,5 +117,12 @@ if not data.empty:
         plot_distance_histogram(data, dist_unit)
         nearest = data[data.sy_dist == data.sy_dist.min()].iloc[0]
         farthest = data[data.sy_dist == data.sy_dist.max()].iloc[0]
-        st.markdown(f'最近的系外行星: {nearest.pl_name}')
-        st.markdown(f'最遠的系外行星: {farthest.pl_name}')
+        nearest_info_col, farthest_info_col = st.beta_columns(2)
+
+        with nearest_info_col:
+            nearest = arrange_extreme_exoplanet_data(nearest)
+            st.table(nearest.rename('目前發現離地球最近的系外行星'))
+            
+        with farthest_info_col:
+            farthest = arrange_extreme_exoplanet_data(farthest)
+            st.table(farthest.rename('目前發現離地球最遠的系外行星'))
