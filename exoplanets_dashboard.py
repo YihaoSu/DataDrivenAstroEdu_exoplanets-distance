@@ -84,7 +84,7 @@ data_load_state = st.markdown('正在連線[NASA太陽系外行星資料庫](htt
 data = get_data_from_nasa_api()
 
 if not data.empty:
-    data_load_state.markdown(f'資料讀取完成，共取得{len(data)}筆[太陽系外行星](https://zh.wikipedia.org/wiki/%E5%A4%AA%E9%99%BD%E7%B3%BB%E5%A4%96%E8%A1%8C%E6%98%9F)資料。')
+    data_load_state.markdown(f'資料讀取完成，從[NASA太陽系外行星資料庫](https://exoplanetarchive.ipac.caltech.edu/)共取得{len(data)}筆[太陽系外行星](https://zh.wikipedia.org/wiki/%E5%A4%AA%E9%99%BD%E7%B3%BB%E5%A4%96%E8%A1%8C%E6%98%9F)資料。')
     want_to_know = st.sidebar.selectbox('你想要知道系外行星...', ['有多大？', '有多遠？'])
 
     if want_to_know == '有多大？':
