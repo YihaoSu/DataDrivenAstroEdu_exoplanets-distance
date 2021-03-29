@@ -45,7 +45,7 @@ def plot_distance_histogram(data, dist_unit):
     pc_to_km = pc.to(u.km)
 
     if dist_unit == '光年':
-        data['sy_dist_lyr'] = data['sy_dist'] * pc_to_lyr.value
+        data['sy_dist_lyr'] = (data['sy_dist'] * pc_to_lyr.value).round(2)
         fig = px.histogram(data, x='sy_dist_lyr', nbins=50)
     elif dist_unit == '公里':
         data['sy_dist_km'] = data['sy_dist'] * pc_to_km.value
@@ -69,7 +69,9 @@ def arrange_extreme_exoplanet_data(extreme_exoplanet):
             'pl_orbper': '軌道週期 (天)',
             'pl_bmasse': '質量 (以地球質量為單位)',
             'pl_rade': '半徑 (以地球半徑為單位)',
-            'sy_dist': '距離 (秒差距)'
+            'sy_dist': '距離 (秒差距)',
+            'sy_dist_lyr': '距離 (光年)',
+            'sy_dist_km': '距離 (公里)'
         }, inplace=True)
     return extreme_exoplanet
 
