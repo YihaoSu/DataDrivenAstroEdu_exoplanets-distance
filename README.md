@@ -1,6 +1,6 @@
 # 天文教育網頁APP - 太陽系外行星儀表板
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/yihaosu/streamlit4astroedu-exoplanets/main/exoplanets_dashboard.py)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/HHTpy/HHTpywrapper/blob/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/YihaoSu/streamlit4astroedu-exoplanets/blob/main/LICENSE)
 
 此網頁APP是以[Streamlit](https://streamlit.io/)開發，並從[NASA太陽系外行星資料庫](https://exoplanetarchive.ipac.caltech.edu/)抓取資料。
 
