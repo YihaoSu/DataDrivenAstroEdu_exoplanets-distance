@@ -36,7 +36,7 @@ def plot_census(data, y_value, color_by, disc_year):
     return st.plotly_chart(fig, use_container_width=True)
 
 def plot_discoverymethod_piechart(data):
-    fig = px.pie(data, names='discoverymethod')
+    fig = px.pie(data, names='discoverymethod', color='discoverymethod')
     return st.plotly_chart(fig, use_container_width=True)
 
 def plot_distance_histogram(data, dist_unit):
