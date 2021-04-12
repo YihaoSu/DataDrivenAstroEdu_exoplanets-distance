@@ -34,9 +34,17 @@ def get_exoplanet_data():
 def generate_my_exoplanets(selected_exoplanet=None):
     if selected_exoplanet is None:
         return []
-    else:
+    elif len(my_exoplanets) == 0:
         my_exoplanets.append(selected_exoplanet)
         return pd.DataFrame(my_exoplanets).reset_index(drop=True)
+    else:
+        distance_my_exoplanets = pd.DataFrame(my_exoplanets)['distance_pc']
+        distance_selected_exoplanet = selected_exoplanet['distance_pc']
+        if distance_my_exoplanets.gt(distance_selected_exoplanet).all():
+            my_exoplanets.append(selected_exoplanet)
+            return pd.DataFrame(my_exoplanets).reset_index(drop=True)
+        else:
+            return None
 
 
 st.set_page_config(page_title='歸途 - 太陽系外行星篇', layout='wide')
@@ -56,7 +64,12 @@ if not exoplanet_data.empty:
 
     if st.sidebar.button('隨機產生'):
         selected_exoplanet = exoplanet_data.sample().iloc[0]
-        distance_au = int(selected_exoplanet.distance_au)
-        st.text(f'你與星的距離: 約為地球和太陽距離的{distance_au}倍')
+        name = selected_exoplanet['name']
+        distance_au = int(selected_exoplanet['distance_au'])
+        st.text(f'你與{name}的距離: 約為地球和太陽距離的{distance_au}倍')
         my_exoplanets = generate_my_exoplanets(selected_exoplanet)
-        st.dataframe(my_exoplanets)
+
+        if my_exoplanets is not None:
+            st.dataframe(my_exoplanets)
+        else:
+            st.error('哎呀，你並沒有縮短與星的距離，請再試一次')
