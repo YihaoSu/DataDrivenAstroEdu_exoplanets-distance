@@ -82,6 +82,9 @@ if not exoplanet_data.empty:
         st.caching.clear_cache()
 
     if st.sidebar.button('隨機產生'):
+        nearest_exoplanet = exoplanet_data[
+            exoplanet_data.distance_pc == exoplanet_data.distance_pc.min()
+            ].iloc[0]
         selected_exoplanet = exoplanet_data.sample().iloc[0]
         pl_name = selected_exoplanet['pl_name']
         distance_au = int(selected_exoplanet['distance_au'])
@@ -89,7 +92,11 @@ if not exoplanet_data.empty:
         my_exoplanets = generate_my_exoplanets(selected_exoplanet)
         selected_exoplanet_info = get_exoplanet_info(selected_exoplanet)
 
-        if my_exoplanets is not None:
+        if pl_name == nearest_exoplanet['pl_name']:
+            st.balloons()
+            st.success('恭喜你已經抵達離地球最近的系外行星了！ 若要再玩一次請按「清掉紀錄重新開始」。')
+            st.info(selected_exoplanet_info)
+        elif my_exoplanets is not None:
             st.success('恭喜你又離家更近了！')
             st.info(selected_exoplanet_info)
         else:
