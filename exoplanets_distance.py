@@ -51,15 +51,22 @@ def generate_my_exoplanets(selected_exoplanet=None):
             return None
 
 
-def get_exoplanet_info(exoplanet):
+def get_exoplanet_info(exoplanet, distance_unit):
+    distance_unit_dict = {
+        '秒差距': 'distance_pc',
+        '光年': 'distance_lyr',
+        '天文單位': 'distance_au',
+        '公里': 'distance_km'
+    }
     pl_name = exoplanet['pl_name']
-    distance = exoplanet['distance_pc']
+    distance = exoplanet[distance_unit_dict.get(distance_unit)]
     discovery_year = exoplanet['discovery_year']
     mass = exoplanet['mass']
     radius = exoplanet['radius']
     host_name = exoplanet['host_name']
     orbital_period = exoplanet['orbital_period']
-    info = f'{pl_name}於{discovery_year}年被發現，距離地球{round(distance, 1)}秒差距。'
+    info = f'{pl_name}於{discovery_year}年被發現，'
+    info += f'距離地球{round(distance, 1)}{distance_unit}。'
     info += f'它的質量約為地球的{round(mass, 1)}倍、半徑約為地球的{round(radius, 1)}倍。'
     info += f'它繞行母恆星{host_name}一圈約需{round(orbital_period, 1)}天。'
 
@@ -81,6 +88,13 @@ if not exoplanet_data.empty:
     if st.sidebar.button('清掉紀錄重新開始'):
         st.caching.clear_cache()
 
+    distance_unit = st.sidebar.selectbox(
+        '請先選擇要以哪個長度單位來描述距離：', ['秒差距', '光年', '天文單位', '公里'])
+    st.sidebar.markdown('[秒差距](https://zh.wikipedia.org/zh-tw/%E7%A7%92%E5%B7%AE%E8%B7%9D)、[光年](https://zh.wikipedia.org/zh-tw/%E5%85%89%E5%B9%B4)和[天文單位](https://zh.wikipedia.org/zh-tw/%E5%A4%A9%E6%96%87%E5%96%AE%E4%BD%8D)都是常用來描述星體距離的長度單位')
+    st.sidebar.markdown('1秒差距約為 $3.09*10^{13}$ 公里')
+    st.sidebar.markdown('1光年約為 $9.46*10^{12}$ 公里')
+    st.sidebar.markdown('1天文單位是地球和太陽的平均距離，約為 $1.5*10^{8}$ 公里')
+
     if st.sidebar.button('隨機產生'):
         nearest_exoplanet = exoplanet_data[
             exoplanet_data.distance_pc == exoplanet_data.distance_pc.min()
@@ -90,7 +104,8 @@ if not exoplanet_data.empty:
         distance_au = int(selected_exoplanet['distance_au'])
         st.subheader(f'你目前位於{pl_name}，與星的距離約為地球和太陽距離的{distance_au}倍')
         my_exoplanets = generate_my_exoplanets(selected_exoplanet)
-        selected_exoplanet_info = get_exoplanet_info(selected_exoplanet)
+        selected_exoplanet_info = get_exoplanet_info(
+            selected_exoplanet, distance_unit)
 
         if pl_name == nearest_exoplanet['pl_name']:
             st.balloons()

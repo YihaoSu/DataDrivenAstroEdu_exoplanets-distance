@@ -115,7 +115,7 @@ if not data.empty:
     if want_to_know == '有多遠？':
         dist_unit = st.sidebar.selectbox('請選擇要以哪個距離單位顯示資料：', ['秒差距', '光年', '公里'])
         st.sidebar.markdown('1[秒差距](https://zh.wikipedia.org/zh-tw/%E7%A7%92%E5%B7%AE%E8%B7%9D)約為3.26光年')
-        st.sidebar.markdown('1[光年](https://zh.wikipedia.org/zh-tw/%E5%85%89%E5%B9%B4)約為$9.46*10^{13}$公里')
+        st.sidebar.markdown('1[光年](https://zh.wikipedia.org/zh-tw/%E5%85%89%E5%B9%B4)約為$9.46*10^{12}$公里')
         plot_distance_histogram(data, dist_unit)
         nearest = data[data.sy_dist == data.sy_dist.min()].iloc[0]
         farthest = data[data.sy_dist == data.sy_dist.max()].iloc[0]
