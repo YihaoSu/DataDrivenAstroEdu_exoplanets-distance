@@ -4,6 +4,11 @@ import astropy.units as u
 from astroquery.nasa_exoplanet_archive import NasaExoplanetArchive
 
 
+@st.cache(allow_output_mutation=True)
+def get_user_list():
+    return []
+
+
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_exoplanet_data():
     parameters = 'fpl_hostname,fpl_name,fst_dist,fpl_bmasse,'
@@ -76,7 +81,16 @@ def get_exoplanet_info(exoplanet, distance_unit):
 st.set_page_config(page_title='歸途 - 太陽系外行星篇', layout='wide')
 st.title('歸途 - 太陽系外行星篇')
 
-with st.spinner('載入中，請稍候...'):
+session_id = st.report_thread.get_report_ctx().session_id
+user_list = get_user_list()
+
+if session_id not in user_list:
+    get_user_list().append(session_id)
+
+if len(user_list) > 1:
+    st.caching.clear_cache()
+
+with st.spinner('從[NASA太陽系外行星資料庫](https://exoplanetarchive.ipac.caltech.edu/)載入資料中，請稍候...'):
     exoplanet_data = get_exoplanet_data()
     my_exoplanets = generate_my_exoplanets()
 
