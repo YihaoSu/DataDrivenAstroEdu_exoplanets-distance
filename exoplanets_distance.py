@@ -1,7 +1,16 @@
 import pandas as pd
 import streamlit as st
 import astropy.units as u
+import plotly.express as px
 from astroquery.nasa_exoplanet_archive import NasaExoplanetArchive
+
+
+distance_unit_dict = {
+    '秒差距': 'distance_pc',
+    '光年': 'distance_lyr',
+    '天文單位': 'distance_au',
+    '公里': 'distance_km'
+}
 
 
 @st.cache(allow_output_mutation=True)
@@ -57,12 +66,6 @@ def generate_my_exoplanets(selected_exoplanet=None):
 
 
 def get_exoplanet_info(exoplanet, distance_unit):
-    distance_unit_dict = {
-        '秒差距': 'distance_pc',
-        '光年': 'distance_lyr',
-        '天文單位': 'distance_au',
-        '公里': 'distance_km'
-    }
     pl_name = exoplanet['pl_name']
     distance = exoplanet[distance_unit_dict.get(distance_unit)]
     discovery_year = exoplanet['discovery_year']
@@ -76,6 +79,32 @@ def get_exoplanet_info(exoplanet, distance_unit):
     info += f'它繞行母恆星{host_name}一圈約需{round(orbital_period, 1)}天。'
 
     return info
+
+
+def plot_my_exoplanets(my_exoplanets, distance_unit):
+    distance = distance_unit_dict.get(distance_unit)
+    fig = px.scatter_3d(
+        my_exoplanets, x='orbital_period', y='mass', z=distance,
+        log_x=True, log_y=True, log_z=True, hover_name='pl_name',
+        size='radius', size_max=100, color='radius',
+        color_continuous_scale=px.colors.sequential.Jet,
+        labels={
+            'orbital_period': '繞行母恆星一圈需多少天',
+            'mass': '質量是地球的幾倍',
+            distance: f'與星的距離 ({distance_unit})',
+            'radius': '半徑是地球的幾倍'
+        }
+    )
+    fig.update_layout(
+        width=800, height=800,
+        scene=dict(
+            xaxis=dict(nticks=2),
+            yaxis=dict(nticks=2),
+            zaxis=dict(nticks=2),
+        )
+    )
+
+    return st.plotly_chart(fig, use_container_width=True)
 
 
 st.set_page_config(page_title='歸途 - 太陽系外行星篇', layout='wide')
@@ -116,7 +145,11 @@ if not exoplanet_data.empty:
         selected_exoplanet = exoplanet_data.sample().iloc[0]
         pl_name = selected_exoplanet['pl_name']
         distance_au = int(selected_exoplanet['distance_au'])
-        st.subheader(f'你目前位於{pl_name}，與星的距離約為地球和太陽距離的{distance_au}倍')
+        distance_lyr = int(selected_exoplanet['distance_lyr'])
+        selected_exoplanet_short_info = f'你目前位於{pl_name}，'
+        selected_exoplanet_short_info += f'與星的距離約為地球和太陽距離的{distance_au}倍，'
+        selected_exoplanet_short_info += f'你看到的星光來自{distance_lyr}年前'
+        st.subheader(selected_exoplanet_short_info)
         my_exoplanets = generate_my_exoplanets(selected_exoplanet)
         selected_exoplanet_info = get_exoplanet_info(
             selected_exoplanet, distance_unit)
@@ -128,6 +161,7 @@ if not exoplanet_data.empty:
         elif my_exoplanets is not None:
             st.success('恭喜你又離家更近了！')
             st.info(selected_exoplanet_info)
+            plot_my_exoplanets(my_exoplanets, distance_unit)
         else:
             st.error('哎呀，你並沒有縮短與星的距離，請再試一次！')
             st.info(selected_exoplanet_info)
