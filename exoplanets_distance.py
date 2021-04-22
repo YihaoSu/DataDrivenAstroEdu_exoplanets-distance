@@ -43,7 +43,9 @@ def get_exoplanet_data():
         'fpl_disc': 'discovery_year',
         'fpl_discmethod': 'discovery_method'
     }
-    data.rename(columns=renamed_columns_dict, inplace=True)
+    data = data.rename(columns=renamed_columns_dict)
+    data = data.sort_values(
+        by=['distance_pc'], ascending=False, ignore_index=True)
 
     return data
 
@@ -156,9 +158,20 @@ if not exoplanet_data.empty:
     st.sidebar.markdown('1秒差距約為 $3.09*10^{13}$ 公里')
     st.sidebar.markdown('1光年約為 $9.46*10^{12}$ 公里')
     st.sidebar.markdown('1天文單位是地球和太陽的平均距離，約為 $1.5*10^{8}$ 公里')
-    st.sidebar.subheader(':game_die: 隨機漫步系外行星')
+    st.sidebar.subheader('調整步伐')
+    step = st.sidebar.slider(distance_unit, 0, 8000, 8000)
 
+    st.sidebar.subheader(':game_die: 隨機漫步系外行星')
     if st.sidebar.button('前進或後退'):
+        distance_col = distance_unit_dict.get(distance_unit)
+        last_exoplanet = pd.Series(my_exoplanets[-1])
+        last_exoplanet_distance = last_exoplanet[distance_col]
+        last_exoplanet_name = last_exoplanet['pl_name']
+        exoplanet_data = exoplanet_data[
+            (exoplanet_data['pl_name'] != last_exoplanet_name) &
+            (exoplanet_data[distance_col] > last_exoplanet_distance - step) &
+            (exoplanet_data[distance_col] < last_exoplanet_distance + step)
+        ]
         selected_exoplanet = exoplanet_data.sample().iloc[0]
         my_exoplanets = generate_my_exoplanets(selected_exoplanet)
 
@@ -174,14 +187,10 @@ if not exoplanet_data.empty:
 
     if selected_exoplanet['pl_name'] == nearest_exoplanet['pl_name']:
         st.balloons()
-        st.success('恭喜你已經抵達離地球最近的系外行星了！ 若要再玩一次請按「清掉歸途紀錄重新出發」。')
+        st.success('恭喜你已經抵達離地球最近的系外行星了！ 若要再玩一次請重新載入頁面。')
     elif my_exoplanets is not None:
         if len(my_exoplanets) > 1:
             st.success('恭喜你又離家更近了！')
         plot_my_exoplanets(my_exoplanets, distance_unit)
     else:
         st.error('哎呀，你並沒有縮短與星的距離，請再試一次！')
-
-    st.sidebar.markdown('---')
-    if st.sidebar.button('清掉歸途紀錄重新出發'):
-        st.caching.clear_cache()
