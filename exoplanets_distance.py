@@ -163,6 +163,11 @@ if not exoplanet_data.empty:
 
     st.sidebar.subheader(':game_die: 隨機漫步系外行星')
     if st.sidebar.button('前進或後退'):
+        if len(my_exoplanets) == 3:
+            ad_text = '歸途中你遇到一位[神祕的宇宙社團](https://www.facebook.com/groups/1022708484514663)成員，'
+            ad_text += '他歡迎你加入社團，也希望你能[支持他](https://liker.land/astrobackhacker/civic)，'
+            ad_text += '一同讓天文更開放，拉近群眾與星空的距離。'
+            st.warning(ad_text)
         distance_col = distance_unit_dict.get(distance_unit)
         last_exoplanet = pd.Series(my_exoplanets[-1])
         last_exoplanet_distance = last_exoplanet[distance_col]
