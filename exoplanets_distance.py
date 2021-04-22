@@ -55,13 +55,8 @@ def generate_my_exoplanets(selected_exoplanet=None, start_exoplanet=None):
     if selected_exoplanet.equals(start_exoplanet):
         return [start_exoplanet]
     else:
-        distance_my_exoplanets = pd.DataFrame(my_exoplanets)['distance_pc']
-        distance_selected_exoplanet = selected_exoplanet['distance_pc']
-        if distance_my_exoplanets.gt(distance_selected_exoplanet).all():
-            my_exoplanets.append(selected_exoplanet)
-            return pd.DataFrame(my_exoplanets).reset_index(drop=True)
-        else:
-            return None
+        my_exoplanets.append(selected_exoplanet)
+        return pd.DataFrame(my_exoplanets).reset_index(drop=True)
 
 
 def get_exoplanet_short_info(exoplanet):
@@ -162,23 +157,23 @@ if not exoplanet_data.empty:
     step = st.sidebar.slider(distance_unit, 0, 8000, 8000)
 
     st.sidebar.subheader(':game_die: 隨機漫步系外行星')
-    if st.sidebar.button('前進或後退'):
+    if st.sidebar.button('前進'):
         if len(my_exoplanets) == 3:
             ad_text = '歸途中你遇到一位[神祕的宇宙社團](https://www.facebook.com/groups/1022708484514663)成員，'
             ad_text += '他歡迎你加入社團，也希望你能[支持他](https://liker.land/astrobackhacker/civic)，'
             ad_text += '一同讓天文更開放，拉近群眾與星空的距離。'
             st.warning(ad_text)
         distance_col = distance_unit_dict.get(distance_unit)
-        last_exoplanet = pd.Series(my_exoplanets[-1])
-        last_exoplanet_distance = last_exoplanet[distance_col]
-        last_exoplanet_name = last_exoplanet['pl_name']
+        last_exoplanet_distance = pd.Series(my_exoplanets[-1])[distance_col]
         exoplanet_data = exoplanet_data[
-            (exoplanet_data['pl_name'] != last_exoplanet_name) &
             (exoplanet_data[distance_col] > last_exoplanet_distance - step) &
-            (exoplanet_data[distance_col] < last_exoplanet_distance + step)
+            (exoplanet_data[distance_col] < last_exoplanet_distance)
         ]
-        selected_exoplanet = exoplanet_data.sample().iloc[0]
-        my_exoplanets = generate_my_exoplanets(selected_exoplanet)
+        if len(exoplanet_data) > 0:
+            selected_exoplanet = exoplanet_data.sample().iloc[0]
+            my_exoplanets = generate_my_exoplanets(selected_exoplanet)
+        else:
+            st.error('你的步伐太小，無法抵達下一個系外行星，請調整步伐!')
 
     if isinstance(my_exoplanets, list):
         selected_exoplanet = my_exoplanets[-1]
@@ -193,9 +188,6 @@ if not exoplanet_data.empty:
     if selected_exoplanet['pl_name'] == nearest_exoplanet['pl_name']:
         st.balloons()
         st.success('恭喜你已經抵達離地球最近的系外行星了！ 若要再玩一次請重新載入頁面。')
-    elif my_exoplanets is not None:
-        if len(my_exoplanets) > 1:
-            st.success('恭喜你又離家更近了！')
-        plot_my_exoplanets(my_exoplanets, distance_unit)
-    else:
-        st.error('哎呀，你並沒有縮短與星的距離，請再試一次！')
+        st.caching.clear_cache()
+
+    plot_my_exoplanets(my_exoplanets, distance_unit)
