@@ -49,12 +49,9 @@ def get_exoplanet_data():
 
 
 @st.cache(allow_output_mutation=True)
-def generate_my_exoplanets(selected_exoplanet=None):
-    if selected_exoplanet is None:
-        return []
-    elif len(my_exoplanets) == 0:
-        my_exoplanets.append(selected_exoplanet)
-        return pd.DataFrame(my_exoplanets).reset_index(drop=True)
+def generate_my_exoplanets(selected_exoplanet=None, start_exoplanet=None):
+    if selected_exoplanet.equals(start_exoplanet):
+        return [start_exoplanet]
     else:
         distance_my_exoplanets = pd.DataFrame(my_exoplanets)['distance_pc']
         distance_selected_exoplanet = selected_exoplanet['distance_pc']
@@ -65,7 +62,18 @@ def generate_my_exoplanets(selected_exoplanet=None):
             return None
 
 
-def get_exoplanet_info(exoplanet, distance_unit):
+def get_exoplanet_short_info(exoplanet):
+    pl_name = exoplanet['pl_name']
+    distance_au = int(exoplanet['distance_au'])
+    distance_lyr = int(exoplanet['distance_lyr'])
+    selected_exoplanet_short_info = f'你目前位於{pl_name}，'
+    selected_exoplanet_short_info += f'與星的距離約為地球和太陽距離的{distance_au}倍，'
+    selected_exoplanet_short_info += f'你看到的星光來自{distance_lyr}年前'
+
+    return selected_exoplanet_short_info
+
+
+def get_exoplanet_detailed_info(exoplanet, distance_unit):
     pl_name = exoplanet['pl_name']
     distance = exoplanet[distance_unit_dict.get(distance_unit)]
     discovery_year = exoplanet['discovery_year']
@@ -121,47 +129,59 @@ if len(user_list) > 1:
 
 with st.spinner('從[NASA太陽系外行星資料庫](https://exoplanetarchive.ipac.caltech.edu/)載入資料中，請稍候...'):
     exoplanet_data = get_exoplanet_data()
-    my_exoplanets = generate_my_exoplanets()
 
 if not exoplanet_data.empty:
     st.header('*縮短與星的距離 繪製專屬於你的歸途*')
     st.markdown('---')
-    st.subheader(':scroll: 說明:')
 
-    if st.sidebar.button('清掉紀錄重新開始'):
-        st.caching.clear_cache()
+    nearest_exoplanet = exoplanet_data[
+        exoplanet_data.distance_pc == exoplanet_data.distance_pc.min()
+        ].iloc[0]
+    farthest_exoplanet = exoplanet_data[
+        exoplanet_data.distance_pc == exoplanet_data.distance_pc.max()
+        ].iloc[0]
+    selected_exoplanet = farthest_exoplanet
+    my_exoplanets = generate_my_exoplanets(
+        selected_exoplanet, farthest_exoplanet)
+    intro_text = '[太陽系外行星](https://zh.wikipedia.org/zh-tw/%E5%A4%AA%E9%99%BD%E7%B3%BB%E5%A4%96%E8%A1%8C%E6%98%9F)(簡稱系外行星)是指位於太陽系之外，不繞行太陽公轉的行星。'
+    intro_text += f'你從離地球最遠的系外行星{farthest_exoplanet["pl_name"]}出發，'
+    intro_text += '你將會漫步到哪個星球呢？'
+    intro_text += '縮短與星的距離，繪製專屬於你的歸途吧!'
+    st.info(f':scroll: {intro_text}')
 
-    distance_unit = st.sidebar.selectbox(
-        '請先選擇要以哪個長度單位來描述距離：', ['秒差距', '光年', '天文單位', '公里'])
+    st.sidebar.header('控制室')
+    st.sidebar.subheader(':straight_ruler: 選擇描述你與星距離的長度單位')
+    distance_unit = st.sidebar.selectbox('', ['秒差距', '光年', '天文單位', '公里'])
     st.sidebar.markdown('[秒差距](https://zh.wikipedia.org/zh-tw/%E7%A7%92%E5%B7%AE%E8%B7%9D)、[光年](https://zh.wikipedia.org/zh-tw/%E5%85%89%E5%B9%B4)和[天文單位](https://zh.wikipedia.org/zh-tw/%E5%A4%A9%E6%96%87%E5%96%AE%E4%BD%8D)都是常用來描述星體距離的長度單位')
     st.sidebar.markdown('1秒差距約為 $3.09*10^{13}$ 公里')
     st.sidebar.markdown('1光年約為 $9.46*10^{12}$ 公里')
     st.sidebar.markdown('1天文單位是地球和太陽的平均距離，約為 $1.5*10^{8}$ 公里')
+    st.sidebar.subheader(':game_die: 隨機漫步系外行星')
 
-    if st.sidebar.button('隨機產生'):
-        nearest_exoplanet = exoplanet_data[
-            exoplanet_data.distance_pc == exoplanet_data.distance_pc.min()
-            ].iloc[0]
+    if st.sidebar.button('前進或後退'):
         selected_exoplanet = exoplanet_data.sample().iloc[0]
-        pl_name = selected_exoplanet['pl_name']
-        distance_au = int(selected_exoplanet['distance_au'])
-        distance_lyr = int(selected_exoplanet['distance_lyr'])
-        selected_exoplanet_short_info = f'你目前位於{pl_name}，'
-        selected_exoplanet_short_info += f'與星的距離約為地球和太陽距離的{distance_au}倍，'
-        selected_exoplanet_short_info += f'你看到的星光來自{distance_lyr}年前'
-        st.subheader(selected_exoplanet_short_info)
         my_exoplanets = generate_my_exoplanets(selected_exoplanet)
-        selected_exoplanet_info = get_exoplanet_info(
-            selected_exoplanet, distance_unit)
 
-        if pl_name == nearest_exoplanet['pl_name']:
-            st.balloons()
-            st.success('恭喜你已經抵達離地球最近的系外行星了！ 若要再玩一次請按「清掉紀錄重新開始」。')
-            st.info(selected_exoplanet_info)
-        elif my_exoplanets is not None:
+    if isinstance(my_exoplanets, list):
+        selected_exoplanet = my_exoplanets[-1]
+    elif isinstance(my_exoplanets, pd.DataFrame):
+        selected_exoplanet = my_exoplanets.iloc[-1]
+
+    st.subheader(get_exoplanet_short_info(selected_exoplanet))
+    selected_exoplanet_detailed_info = get_exoplanet_detailed_info(
+        selected_exoplanet, distance_unit)
+    st.info(selected_exoplanet_detailed_info)
+
+    if selected_exoplanet['pl_name'] == nearest_exoplanet['pl_name']:
+        st.balloons()
+        st.success('恭喜你已經抵達離地球最近的系外行星了！ 若要再玩一次請按「清掉歸途紀錄重新出發」。')
+    elif my_exoplanets is not None:
+        if len(my_exoplanets) > 1:
             st.success('恭喜你又離家更近了！')
-            st.info(selected_exoplanet_info)
-            plot_my_exoplanets(my_exoplanets, distance_unit)
-        else:
-            st.error('哎呀，你並沒有縮短與星的距離，請再試一次！')
-            st.info(selected_exoplanet_info)
+        plot_my_exoplanets(my_exoplanets, distance_unit)
+    else:
+        st.error('哎呀，你並沒有縮短與星的距離，請再試一次！')
+
+    st.sidebar.markdown('---')
+    if st.sidebar.button('清掉歸途紀錄重新出發'):
+        st.caching.clear_cache()
