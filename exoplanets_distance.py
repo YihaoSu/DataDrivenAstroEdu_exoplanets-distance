@@ -82,6 +82,8 @@ def get_exoplanet_detailed_info(exoplanet, distance_unit):
     info += f'距離地球{round(distance, 1)}{distance_unit}。'
     info += f'它的質量約為地球的{round(mass, 1)}倍、半徑約為地球的{round(radius, 1)}倍。'
     info += f'它繞行母恆星{host_name}一圈約需{round(orbital_period, 1)}天。'
+    nasa_url = 'https://exoplanets.nasa.gov/eyes-on-exoplanets/#/planet/'
+    info += f'([到NASA網站瞧瞧它在藝術家的眼中長得如何]({nasa_url}{pl_name.replace(" ", "_")}))'
 
     return info
 
