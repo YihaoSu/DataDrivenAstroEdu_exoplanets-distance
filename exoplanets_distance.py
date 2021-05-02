@@ -18,30 +18,65 @@ def get_user_list():
     return []
 
 
+# @st.cache(allow_output_mutation=True, show_spinner=False)
+# def get_exoplanet_data():
+#     parameters = 'fpl_hostname,fpl_name,fst_dist,fpl_bmasse,'
+#     parameters += 'fpl_orbper,fpl_rade,fpl_disc,fpl_discmethod'
+#     data = NasaExoplanetArchive.query_criteria(
+#         table='compositepars', select=parameters)
+
+#     data['distance_lyr'] = data['fst_dist'].to(u.lyr)
+#     data['distance_au'] = data['fst_dist'].to(u.au)
+#     data['distance_km'] = data['fst_dist'].to(u.km)
+#     data = data.to_pandas()
+#     data = data[data.fst_dist > 0]
+#     data = data[data.fpl_bmasse > 0]
+#     data = data[data.fpl_orbper > 0]
+#     data = data[data.fpl_rade > 0]
+#     renamed_columns_dict = {
+#         'fpl_hostname': 'host_name',
+#         'fpl_name': 'pl_name',
+#         'fst_dist': 'distance_pc',
+#         'fpl_bmasse': 'mass',
+#         'fpl_orbper': 'orbital_period',
+#         'fpl_rade': 'radius',
+#         'fpl_disc': 'discovery_year',
+#         'fpl_discmethod': 'discovery_method'
+#     }
+#     data = data.rename(columns=renamed_columns_dict)
+#     data = data.sort_values(
+#         by=['distance_pc'], ascending=False, ignore_index=True)
+
+#     return data
+
+
 @st.cache(allow_output_mutation=True, show_spinner=False)
 def get_exoplanet_data():
-    parameters = 'fpl_hostname,fpl_name,fst_dist,fpl_bmasse,'
-    parameters += 'fpl_orbper,fpl_rade,fpl_disc,fpl_discmethod'
-    data = NasaExoplanetArchive.query_criteria(
-        table='compositepars', select=parameters)
+    parameters = 'hostname,pl_name,sy_dist,pl_bmasse,'
+    parameters += 'pl_orbper,pl_rade,disc_year,discoverymethod'
+    api_url = 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync?'
+    api_url += f'query=select+{parameters}+from+pscomppars&format=csv'
+    data = pd.read_csv(api_url)
 
-    data['distance_lyr'] = data['fst_dist'].to(u.lyr)
-    data['distance_au'] = data['fst_dist'].to(u.au)
-    data['distance_km'] = data['fst_dist'].to(u.km)
-    data = data.to_pandas()
-    data = data[data.fst_dist > 0]
-    data = data[data.fpl_bmasse > 0]
-    data = data[data.fpl_orbper > 0]
-    data = data[data.fpl_rade > 0]
+    pc = 1 * u.parsec
+    pc_to_lyr = pc.to(u.lyr)
+    pc_to_au = pc.to(u.au)
+    pc_to_km = pc.to(u.km)
+    data['distance_lyr'] = data['sy_dist'] * pc_to_lyr.value
+    data['distance_au'] = data['sy_dist'] * pc_to_au.value
+    data['distance_km'] = data['sy_dist'] * pc_to_km.value
+    data = data[data.sy_dist > 0]
+    data = data[data.pl_bmasse > 0]
+    data = data[data.pl_orbper > 0]
+    data = data[data.pl_rade > 0]
     renamed_columns_dict = {
-        'fpl_hostname': 'host_name',
-        'fpl_name': 'pl_name',
-        'fst_dist': 'distance_pc',
-        'fpl_bmasse': 'mass',
-        'fpl_orbper': 'orbital_period',
-        'fpl_rade': 'radius',
-        'fpl_disc': 'discovery_year',
-        'fpl_discmethod': 'discovery_method'
+        'hostname': 'host_name',
+        'sy_dist': 'distance_pc',
+        'pl_bmasse': 'mass',
+        'pl_orbper': 'orbital_period',
+        'pl_rade': 'radius',
+        'disc_year': 'discovery_year',
+        'discoverymethod': 'discovery_method'
     }
     data = data.rename(columns=renamed_columns_dict)
     data = data.sort_values(
